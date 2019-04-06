@@ -45,5 +45,7 @@ Run with `mpjrun`:
 
 ```bash
 cd bin/
-mpjrun -np <nbCores> fr.upec.esipe.ParallelWordCount
+mpjrun -np <number of cores> fr.upec.esipe.ParallelWordCount <path/to/textfile> <word to count> 
 ```
+
+_Note that the number of cores has to be greater or equal to two._
