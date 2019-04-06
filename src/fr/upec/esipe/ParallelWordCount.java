@@ -39,6 +39,7 @@ public class ParallelWordCount {
             String line;
             int destination = 0;
             int totalOccurs = 0;
+            long start = System.currentTimeMillis();
 
             int size = MPI.COMM_WORLD.Size();
 
@@ -55,7 +56,12 @@ public class ParallelWordCount {
                 totalOccurs += lineOccurs[0];
             }
 
+            long finish = System.currentTimeMillis();
+
+            System.out.println("--------------------------------------------------");
             System.out.println("Result: " + totalOccurs);
+            System.out.println("Performed in " + (finish - start) + " ms");
+            System.out.println("--------------------------------------------------");
 
             terminate(size);
 
