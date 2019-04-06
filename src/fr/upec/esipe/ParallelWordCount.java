@@ -22,7 +22,7 @@ public class ParallelWordCount {
             File file = new File(appArgs[0]);
             readFile(file);
         } else {
-            countWord(appArgs[1], rank);
+            countWords(appArgs[1], rank);
         }
 
         MPI.Finalize();
@@ -43,7 +43,6 @@ public class ParallelWordCount {
             int size = MPI.COMM_WORLD.Size();
 
             while ((line = bufferedReader.readLine()) != null) {
-
                 destination = destination == size - 1 ? 1 : destination + 1;
                 int[] lineOccurs = {0};
                 String[] strings = {line};
@@ -58,18 +57,15 @@ public class ParallelWordCount {
 
             System.out.println("Result: " + totalOccurs);
 
-            for (int i = 1; i < size; i++) {
-                MPI.COMM_WORLD.Send(new String[]{"terminated"}, 0, 1, MPI.OBJECT, i, 0);
-            }
+            terminate(size);
 
         } catch (IOException e) {
             throw new Exception(e.getMessage());
         }
     }
 
-    private static void countWord(String searchWord, int rank) {
+    private static void countWords(String searchWord, int rank) {
         while (true) {
-            int occurs = 0;
             String[] lineToReceive = {""};
 
             MPI.COMM_WORLD.Recv(lineToReceive, 0, 1, MPI.OBJECT, 0, 0);
@@ -78,17 +74,29 @@ public class ParallelWordCount {
                 break;
             }
 
-            String[] words = lineToReceive[0].split(" ");
-            for (String word : words) {
-                if (word.toLowerCase().equals(searchWord.toLowerCase())) {
-                    occurs++;
-                }
-            }
+            int occurs = count(lineToReceive[0], searchWord);
 
             System.out.println("Received line: " + lineToReceive[0] + ", rank: " + rank + ", occurs: " + occurs);
 
             int[] occursArr = {occurs};
             MPI.COMM_WORLD.Send(occursArr, 0, 1, MPI.INT, 0, 0);
+        }
+    }
+
+    private static int count(String str, String searchWord) {
+        int counter = 0;
+        String[] words = str.split(" ");
+        for (String word : words) {
+            if (word.toLowerCase().equals(searchWord.toLowerCase())) {
+                counter++;
+            }
+        }
+        return counter;
+    }
+
+    private static void terminate(int size) {
+        for (int dest = 1; dest < size; dest++) {
+            MPI.COMM_WORLD.Send(new String[]{"terminated"}, 0, 1, MPI.OBJECT, dest, 0);
         }
     }
 
